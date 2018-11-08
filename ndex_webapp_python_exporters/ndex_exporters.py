@@ -7,7 +7,7 @@ import ndex_webapp_python_exporters
 from ndex_webapp_python_exporters.exporters import GraphMLExporter
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ndex_exporters')
 
 LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
@@ -21,7 +21,8 @@ def _parse_arguments(desc, args):
     parser.add_argument('exporter', help='Specifies exporter to run',
                         choices=['graphml'])
     parser.add_argument('--verbose', '-v', action='count',
-                        help='Increases logging verbosity, max is 4')
+                        help='Increases logging verbosity, max is 4',
+                        default=1)
     parser.add_argument('--version', action='version',
                         version=('%(prog)s ' + ndex_webapp_python_exporters.__version__))
     return parser.parse_args(args)
@@ -31,8 +32,8 @@ def _setuplogging(theargs):
     """Sets up logging"""
     level = (50 - (10 * theargs.verbose))
     logging.basicConfig(format=LOG_FORMAT,
-                        stream=sys.stderr,
                         level=level)
+    streamer = logging.StreamHandler()
     for k in logging.Logger.manager.loggerDict.keys():
         thelog = logging.Logger.manager.loggerDict[k]
 
@@ -42,9 +43,9 @@ def _setuplogging(theargs):
         # is called so I'm checking the class names
         try:
             thelog.setLevel(level)
+            thelog.addHandler(streamer)
         except AttributeError:
             pass
-
 
 
 def main(args):
@@ -54,10 +55,8 @@ def main(args):
     theargs = _parse_arguments(desc, args[1:])
     theargs.program = args[0]
     theargs.version = ndex_webapp_python_exporters.__version__
-
+    _setuplogging(theargs)
     try:
-        _setuplogging(theargs)
-
         logger.debug(theargs.exporter + ' selected')
         exporter = None
         if 'graphml' in theargs.exporter:
@@ -66,7 +65,7 @@ def main(args):
         if exporter is None:
             raise NotImplementedError('Unable to construct Exporter object')
         return exporter.export(sys.stdin, sys.stdout)
-    except Exception:
+    except Exception as e:
         logger.exception("Error caught exception")
         return 2
     finally:
