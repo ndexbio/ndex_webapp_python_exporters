@@ -48,7 +48,8 @@ def _setuplogging(theargs):
 
 def main(args):
     """Main entry point"""
-    desc = """Put description here
+    desc = """Contains various NDex CX data exporters
+              
     """
     theargs = _parse_arguments(desc, args[1:])
     theargs.program = args[0]
