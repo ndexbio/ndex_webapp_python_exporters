@@ -33,7 +33,6 @@ def _setuplogging(theargs):
     level = (50 - (10 * theargs.verbose))
     logging.basicConfig(format=LOG_FORMAT,
                         level=level)
-    streamer = logging.StreamHandler()
     for k in logging.Logger.manager.loggerDict.keys():
         thelog = logging.Logger.manager.loggerDict[k]
 
@@ -43,7 +42,6 @@ def _setuplogging(theargs):
         # is called so I'm checking the class names
         try:
             thelog.setLevel(level)
-            thelog.addHandler(streamer)
         except AttributeError:
             pass
 
