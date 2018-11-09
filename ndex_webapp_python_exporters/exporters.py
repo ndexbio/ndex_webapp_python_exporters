@@ -110,15 +110,34 @@ class GraphMLExporter(NDexExporter):
         for data in json_data:
             for key, value in data.items():
                 if key == "nodes":
-                    self._nodes = value
+                    if self._nodes is None:
+                        self._nodes = value
+                    else:
+                        self._nodes.extend(value)
+
                 if key == "edges":
-                    self._edges = value
+                    if self._edges is None:
+                        self._edges = value
+                    else:
+                        self._edges.extend(value)
+
                 if key == "nodeAttributes":
-                    self._node_attr = value
+                    if self._node_attr is None:
+                        self._node_attr = value
+                    else:
+                        self._node_attr.extend(value)
+
                 if key == "edgeAttributes":
-                    self._edge_attr = value
+                    if self._edge_attr is None:
+                        self._edge_attr = value
+                    else:
+                        self._edge_attr.extend(value)
+
                 if key == "networkAttributes":
-                    self._net_attr = value
+                    if self._net_attr is None:
+                        self._net_attr = value
+                    else:
+                        self._net_attr.extend(value)
 
     def _build_node_attribute_dict(self):
         """
