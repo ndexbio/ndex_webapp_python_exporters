@@ -3,6 +3,7 @@
 
 """Tests for `ndex_webapp_python_exporters` package."""
 
+import io
 import json
 import unittest
 
@@ -13,7 +14,7 @@ from ndex_webapp_python_exporters.exporters import GraphMLExporter
 class TestExporters(unittest.TestCase):
     """Tests for `ndex_webapp_python_exporters` package."""
 
-    def get_small_network(self):
+    def get_small_network_withsubnet(self):
         return """[{"numberVerification": [{"longNumber": 281474976710655}]},
          {"metaData": [{"idCounter": 0, "name": "nodes"}, {"idCounter": 0,
           "name": "edges"}]}, {"networkAttributes": [{"v": "Test Types", "n":
@@ -74,22 +75,23 @@ class TestExporters(unittest.TestCase):
         ge._split_json(None)
         self.assertEqual(ge._nodes, None)
 
-        data = json.loads(self.get_small_network())
+        data = json.loads(self.get_small_network_withsubnet())
         ge._split_json(data)
-        self.assertEqual(str(ge._nodes), "[{'@id': 3, 'n': 'B'}]")
+        self.assertEqual(len(ge._nodes), 3)
         self.assertEqual(len(ge._edges[0]), 4)
         self.assertEqual(ge._node_attr[0]['po'], 1)
-        self.assertEqual(ge._edge_attr[0]['po'], 2)
+        self.assertEqual(ge._edge_attr[0]['po'], 1)
         self.assertEqual(ge._net_attr[0]['n'], 'name')
 
-    def test_graphmlexporter_add_node_attributes_to_nodes(self):
+    def test_graphmlexporter_small_network(self):
         ge = GraphMLExporter()
-
-        # make sure unset doesnt fail
-        ge._add_node_attributes_to_nodes()
-
-        # try empty list
-        ge._node_attr = []
-        ge._add_node_attributes_to_nodes()
-
-
+        fakein = io.StringIO(self.get_small_network_withsubnet())
+        fakeout = io.StringIO()
+        ge.export(fakein, fakeout)
+        import sys
+        sys.stdout.write(fakeout.getvalue())
+        self.assertTrue(fakeout.getvalue().
+                        startswith('<?xml version="1.0" '
+                                   'encoding="UTF-8" standalone="no"?>'))
+        self.assertTrue('<node id="2"><data key="name">A</data></node>' in
+                        fakeout.getvalue())
