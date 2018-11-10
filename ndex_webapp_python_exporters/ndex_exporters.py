@@ -12,6 +12,9 @@ logger = logging.getLogger('ndex_exporters')
 LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
+GRAPHML_MODE = 'graphml'
+FILE_FLAG = 'file'
+OUT_FLAG = 'out'
 
 def _parse_arguments(desc, args):
     """Parses command line arguments"""
@@ -19,7 +22,11 @@ def _parse_arguments(desc, args):
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=help_formatter)
     parser.add_argument('exporter', help='Specifies exporter to run',
-                        choices=['graphml'])
+                        choices=[GRAPHML_MODE])
+    parser.add_argument('--' + FILE_FLAG, '-f', default=None,
+                        help='Read from this file instead of standard in')
+    parser.add_argument('--' + OUT_FLAG, '-o', default=None,
+                        help='Write to this file instead of standard out')
     parser.add_argument('--verbose', '-v', action='count',
                         help='Increases logging verbosity, max is 4',
                         default=1)
@@ -58,12 +65,21 @@ def main(args):
     try:
         logger.debug(theargs.exporter + ' selected')
         exporter = None
-        if 'graphml' in theargs.exporter:
+        if GRAPHML_MODE in theargs.exporter:
             exporter = GraphMLExporter()
 
         if exporter is None:
             raise NotImplementedError('Unable to construct Exporter object')
-        return exporter.export(sys.stdin, sys.stdout)
+
+        input_stream = sys.stdin
+        if theargs.file is not None:
+            input_stream = theargs.file
+
+        output_stream = sys.stdout
+        if theargs.out is not None:
+            output_stream = theargs.out
+
+        return exporter.export(input_stream, output_stream)
     except Exception as e:
         logger.exception("Error caught exception")
         return 2
