@@ -12,13 +12,15 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [ 
-    "argparse"
+    "argparse",
+    "ndex2"
 ]
 
 setup_requirements = [ ]
 
 test_requirements = [ 
     "argparse",
+    "ndex2",
     "unittest2"
 ]
 
