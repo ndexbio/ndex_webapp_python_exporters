@@ -4,9 +4,8 @@
 
 import logging
 import json
-from json.decoder import JSONDecodeError
 import xml.etree.cElementTree as ET
-
+import ndex2
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +19,8 @@ V_KEY = 'v'
 N_KEY = 'n'
 S_KEY = 's'
 T_KEY = 't'
+R_KEY = 'r'
+D_KEY = 'd'
 
 
 class NDexExporter(object):
@@ -61,164 +62,18 @@ class GraphMLExporter(NDexExporter):
     def __init__(self):
         """Constructor"""
         super(NDexExporter, self).__init__()
-        self._nodes = None
-        self._edges = None
-        self._node_attr = None
-        self._edge_attr = None
-        self._net_attr = None
-        self._network_name = None
-        self._keys_net = None
-        self._keys_node = None
-        self._keys_edge = None
+        self._cxnetwork = None
 
     def _clear_internal_variables(self):
         """Deletes all data in internal variables
         and sets them to None
         """
-        del self._nodes
-        del self._edges
-        del self._node_attr
-        del self._edge_attr
-        del self._net_attr
-        del self._network_name
-        del self._keys_net
-        del self._keys_node
-        del self._keys_edge
+        del self._cxnetwork
+        self._cxnetwork = None
 
-        self._nodes = None
-        self._edges = None
-        self._node_attr = None
-        self._edge_attr = None
-        self._net_attr = None
-        self._network_name = None
-        self._keys_net = None
-        self._keys_node = None
-        self._keys_edge = None
-
-    def _split_json(self, json_data):
-        """
-        Splits json_data into separate Aspects.
-        This is a nieve implementation assuming each
-        Aspect only appears once.
-        :param json_data: CX data loaded by json
-        :return:
-        """
-        if json_data is None:
-            logger.error('No json data to split by Aspect')
-            return
-
-        for data in json_data:
-            for key, value in data.items():
-                if key == "nodes":
-                    if self._nodes is None:
-                        self._nodes = value
-                    else:
-                        self._nodes.extend(value)
-
-                if key == "edges":
-                    if self._edges is None:
-                        self._edges = value
-                    else:
-                        self._edges.extend(value)
-
-                if key == "nodeAttributes":
-                    if self._node_attr is None:
-                        self._node_attr = value
-                    else:
-                        self._node_attr.extend(value)
-
-                if key == "edgeAttributes":
-                    if self._edge_attr is None:
-                        self._edge_attr = value
-                    else:
-                        self._edge_attr.extend(value)
-
-                if key == "networkAttributes":
-                    if self._net_attr is None:
-                        self._net_attr = value
-                    else:
-                        self._net_attr.extend(value)
-
-    def _build_node_attribute_dict(self):
-        """
-        Puts internal node attributes list into a dictionary
-        :return: dict():
-        """
-        logger.info('Putting ' + str(len(self._node_attr)) +
-                    ' node attributes into dictionary')
-        attrdict = dict()
-        for attr in self._node_attr:
-            attrdict[attr.get(PO_KEY)] = attr
-        del self._node_attr
-        self._node_attr = None
-        return attrdict
-
-    def _add_node_attributes_to_nodes(self):
-        """Adds node attributes to nodes
-        """
-        if self._node_attr is None:
-            logger.debug('No node attributes found')
-            return
-        logger.info('Adding node attributes to ' + str(len(self._node_attr)) +
-                    ' nodes.')
-        attrdict = self._build_node_attribute_dict()
-        for node in self._nodes:
-            node_id = node.get(AT_ID_KEY)
-            attr = attrdict.get(node_id)
-            if attr is None:
-                continue
-            node[attr.get(N_KEY)] = attr.get(V_KEY)
-
-    def _build_edge_attribute_dict(self):
-        """Puts internal edge attributes list into a dictionary
-           setting key to value of PO_KEY. After completion
-           edge attributes list is deleted.
-           :returns dict():
-        """
-        logger.info('Putting ' + str(len(self._edge_attr)) +
-                    ' edge attributes into dictionary ')
-        attrdict = dict()
-        for attr in self._edge_attr:
-            attrdict[attr.get(PO_KEY)] = attr
-        del self._edge_attr
-        self._edge_attr = None
-        return attrdict
-
-    def _add_edge_attributes_to_edges(self):
-        """Adds edge attributes to edges by first building a
-           dictionary of edge attributes then iterating across
-           the edges
-        """
-        if self._edge_attr is None:
-            logger.debug('No edge attributes found')
-            return
-
-        attrdict = self._build_edge_attribute_dict()
-        del self._edge_attr
-        logger.info('Adding edge attributes to ' + str(len(self._edges)) +
-                    ' edges.')
-        for edge in self._edges:
-            edge_id = edge.get(AT_ID_KEY)
-            attr = attrdict.get(edge_id)
-            if attr is None:
-                continue
-            edge[attr.get(N_KEY)] = attr.get(V_KEY)
-
-    def _extract_network_name(self):
-        """Iterates through networkAttributes list for name of network
-           setting the value to internal variable
-        """
-        if self._net_attr is None:
-            logger.debug('No network attributes found. ' +
-                         'Using unknown for network name')
-            self._network_name = 'unknown'
-            return
-        logger.info('Searching ' + str(len(self._net_attr)) +
-                    ' network attributes for network name')
-        for netattr in self._net_attr:
-            if netattr.get(N_KEY) == "name":
-                self._network_name = str(netattr.get(V_KEY))
-                break
+    def _loadcx(self, inputstream):
+        logger.info('Loading CX data')
+        self._cxnetwork = ndex2.create_nice_cx_from_raw_cx(json.load(inputstream))
 
     def _convert_data_type(self, data_type):
         """Converts Python data types (int, str, bool) to types
@@ -231,6 +86,20 @@ class GraphMLExporter(NDexExporter):
         if data_type == "bool":
             return "boolean"
         return data_type
+
+    def _translate_edge_key_names(self, val):
+        if val is 'i':
+            return 'interaction'
+        if val is AT_ID_KEY:
+            return 'key'
+        return val
+
+    def _translate_node_key_names(self, val):
+        if val is N_KEY:
+            return 'name'
+        if val is R_KEY:
+            return 'represents'
+        return val
 
     def _generate_xml_for_network_keys(self, out):
         """Creates and writes to out stream an xml fragment
@@ -248,93 +117,31 @@ class GraphMLExporter(NDexExporter):
                 ET.ElementTree(d).write(out, encoding=UNICODE)
                 out.write('\n')
 
-    def _extract_network_keys(self):
-        """
-        Extracts network keys data from network attributes
-        :return:
-        """
-        if self._net_attr is None:
-            logger.debug('No network attributes found. Skipping ' +
-                         'extraction of network keys')
-            return
-        self._keys_net = {}
-        for netattr in self._net_attr:
-            if self._keys_net.get(netattr[N_KEY]) is None:
-                temp = {}
-                temp[GraphMLExporter.ATTR_NAME] = netattr[N_KEY]
-                temp[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(netattr[V_KEY]).__name__)
-                temp["for"] = "graph"
-                temp["id"] = netattr[N_KEY]
-                self._keys_net[netattr[N_KEY]] = temp
-
-    def _extract_node_keys(self):
-        """Extract node keys from nodes
-        """
-        self._keys_node = {}
-        for node in self._nodes:
-            for node_key, node_value in node.items():
-                if node_key == '@id':
-                    continue
-                if self._keys_node.get(node_key) is not None:
-                    continue
-                temp = {}
-                if node_key == "n":
-                    temp[GraphMLExporter.ATTR_NAME] = 'name'
-                    temp["id"] = 'name'
-                elif node_key == "r":
-                    temp[GraphMLExporter.ATTR_NAME] = 'represents'
-                    temp["id"] = 'represents'
-                else:
-                    temp[GraphMLExporter.ATTR_NAME] = node_key
-                    temp["id"] = node_key
-                temp["attr.type"] = self._convert_data_type(type(node_value).__name__)
-                temp["for"] = "node"
-                self._keys_node[node_key] = temp
-
-    def _extract_edge_keys(self):
-        """Extract edge keys from edges
-        """
-        self._keys_edge = {}
-        for edge in self._edges:
-            for edge_key, edge_value in edge.items():
-                if edge_key == 's' or edge_key == 't':
-                    continue
-                if self._keys_edge.get(edge_key) is not None:
-                    continue
-                temp = {}
-                if edge_key == "@id":
-                    temp[GraphMLExporter.ATTR_NAME] = 'key'
-                    temp["id"] = 'key'
-                elif edge_key == "i":
-                    temp[GraphMLExporter.ATTR_NAME] = "interaction"
-                    temp["id"] = 'interaction'
-                else:
-                    temp[GraphMLExporter.ATTR_NAME] = edge_key
-                    temp["id"] = edge_key
-                temp[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(edge_value).__name__)
-                temp["for"] = "edge"
-                self._keys_edge[edge_key] = temp
-
     def _get_xml_for_under_node(self, node):
         """
         Creates data xml fragments for node passed in
         :param node: Node to extract data from
         :return: list of ET.Element objects
         """
-
         el = []
-        for node_key, node_value in node.items():
-            if node_key == '@id':
+        logger.info('Node:  ' + str(node))
+        for nid, val in node.items():
+            if nid == '@id':
                 continue
-            if node_key == "n":
-                kval = 'name'
-            elif node_key == "r":
-                kval = 'represents'
-            else:
-                kval = node_key
-
+            kval = self._translate_node_key_names(nid)
             n = ET.Element('data', attrib={'key': kval})
-            n.text = node_value
+            n.text = str(val)
+            el.append(n)
+        for nitem in self._cxnetwork.get_node_attributes(node):
+            logger.info('Node attrib: ' + str(nitem))
+            nid = nitem[N_KEY]
+
+            if nid == '@id':
+                continue
+            val = nitem[V_KEY]
+            kval = self._translate_node_key_names(nid)
+            n = ET.Element('data', attrib={'key': kval})
+            n.text = str(val)
             el.append(n)
         return el
 
@@ -345,10 +152,10 @@ class GraphMLExporter(NDexExporter):
         :return:
         """
 
-        for node in self._nodes:
+        for node_key, node_val in self._cxnetwork.get_nodes():
             n = ET.Element(GraphMLExporter.NODE,
-                           attrib={GraphMLExporter.ID: str(node[AT_ID_KEY])})
-            subel = self._get_xml_for_under_node(node)
+                           attrib={GraphMLExporter.ID: str(node_key)})
+            subel = self._get_xml_for_under_node(node_val)
             if subel is not None:
                 n.extend(subel)
             ET.ElementTree(n).write(out, encoding=UNICODE)
@@ -361,18 +168,28 @@ class GraphMLExporter(NDexExporter):
         :return: list of ET.Element objects
         """
         el = []
-        for edge_key, edge_value in edge.items():
+        logger.info('Edge: ' + str(edge))
+        for eid, val in edge.items():
+            if eid == '@id' or eid == 's' or eid == 't':
+                continue
+            kval = self._translate_edge_key_names(eid)
+            n = ET.Element('data', attrib={'key': kval})
+            n.text = str(val)
+            el.append(n)
+
+        for edgeattr in self._cxnetwork.get_edge_attributes(edge):
+            logger.info("Edge attr: " + str(edgeattr))
             eattrib = {}
+            edge_key = edgeattr[N_KEY]
             if edge_key == "i":
                 eattrib[GraphMLExporter.KEY] = 'interaction'
-            elif edge_key == "@id":
-                eattrib[GraphMLExporter.KEY] = 'key'
-            elif edge_key != "s" and edge_key != "t":
-                eattrib[GraphMLExporter.KEY] = edge_key
-            else:
+            elif edge_key == "v":
+                eattrib[GraphMLExporter.KEY] = 'directed'
+            elif edge_key == "s" or edge_key == "t":
                 continue
+            eattrib[GraphMLExporter.KEY] = str(edge_key)
             e = ET.Element(GraphMLExporter.DATA, attrib=eattrib)
-            e.text = str(edge_value)
+            e.text = str(edgeattr[V_KEY])
             el.append(e)
         return el
 
@@ -382,7 +199,7 @@ class GraphMLExporter(NDexExporter):
         :param out: Output stream
         :return:
         """
-        for edge in self._edges:
+        for id, edge in self._cxnetwork.get_edges():
             e = ET.Element(GraphMLExporter.EDGE,
                            attrib={GraphMLExporter.SOURCE: str(edge[S_KEY]),
                                    GraphMLExporter.TARGET: str(edge[T_KEY])})
@@ -392,7 +209,20 @@ class GraphMLExporter(NDexExporter):
             ET.ElementTree(e).write(out, encoding=UNICODE)
             out.write('\n')
 
-    def _generate_xml_for_keys(self, out, the_keys):
+    def _generate_xml_for_data(self, out):
+        """
+        Reads network attributes and writes out data elements
+        :param out:
+        :return:
+        """
+        for netattr in self._cxnetwork.networkAttributes:
+            kattrib = {}
+            kattrib[GraphMLExporter.KEY] = str(netattr[N_KEY])
+            k = ET.Element('data', attrib=kattrib)
+            k.text = str(netattr[V_KEY])
+            ET.ElementTree(k).write(out, encoding=UNICODE)
+
+    def _generate_xml_for_net_keys(self, out):
         """
         Creates and writes xml for data in the_keys variable to
         out stream
@@ -400,13 +230,140 @@ class GraphMLExporter(NDexExporter):
         :param the_keys: dict of key data to convert to xml
         :return:
         """
-        for attr, attr_val in the_keys.items():
+        netkeyset=set()
+
+        for netattr in self._cxnetwork.networkAttributes:
+            logger.info('NET attr' + str(netattr))
             kattrib = {}
-            for key, value in attr_val.items():
-                kattrib[key] = value
+            n_key = str(netattr[N_KEY])
+            if n_key in netkeyset:
+                continue
+
+            netkeyset.add(n_key)
+
+            kattrib[GraphMLExporter.ATTR_NAME] = n_key
+            value = netattr[V_KEY]
+            if value is None:
+                logger.info('value is none')
+            else:
+                if D_KEY in netattr.keys():
+                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(netattr[D_KEY])
+                else:
+                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(value).__name__)
+            kattrib['for'] = 'graph'
+            kattrib['id'] = n_key
+
             k = ET.Element('key', attrib=kattrib)
             ET.ElementTree(k).write(out, encoding=UNICODE)
-            out.write('\n')
+
+    def _write_name_represents_keys(self, out):
+        nodekeyset=set(['name', 'represents'])
+        for entry in nodekeyset:
+            kattrib={}
+            kattrib['for'] = 'node'
+            kattrib['id'] = entry
+            kattrib[GraphMLExporter.ATTR_NAME] = entry
+            kattrib[GraphMLExporter.ATTR_TYPE] = 'string'
+            k = ET.Element('key', attrib=kattrib)
+            ET.ElementTree(k).write(out, encoding=UNICODE)
+        return nodekeyset
+
+    def _generate_xml_for_node_keys(self, out):
+        """
+        Creates and writes xml for data in the_keys variable to
+        out stream
+        :param out: Output stream
+        :param the_keys: dict of key data to convert to xml
+        :return:
+        """
+
+        nodekeyset=self._write_name_represents_keys(out)
+        for id, node in self._cxnetwork.get_nodes():
+            logger.info('node in keys ' + str(node))
+            for nid, val in node.items():
+                if nid == '@id' or nid == 'n' or nid == 'r':
+                    continue
+                if nid in nodekeyset:
+                    continue
+                nodekeyset.add(nid)
+                kattrib={}
+                kattrib[GraphMLExporter.ATTR_NAME] = nid
+                if val is None:
+                    logger.info('value is none')
+                else:
+                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(val).__name__)
+                kattrib['for'] = 'node'
+                kattrib['id'] = nid
+
+                k = ET.Element('key', attrib=kattrib)
+                ET.ElementTree(k).write(out, encoding=UNICODE)
+
+            for nodeattr in self._cxnetwork.get_node_attributes(node):
+                logger.info(str(nodeattr))
+                kattrib = {}
+                n_key = self._translate_node_key_names(nodeattr[N_KEY])
+                if n_key in nodekeyset:
+                    continue
+
+                nodekeyset.add(n_key)
+
+                kattrib[GraphMLExporter.ATTR_NAME] = n_key
+                value = nodeattr[V_KEY]
+                if value is None:
+                    logger.info('value is none')
+                else:
+                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(value).__name__)
+                kattrib['for'] = 'node'
+                kattrib['id'] = n_key
+
+                k = ET.Element('key', attrib=kattrib)
+                ET.ElementTree(k).write(out, encoding=UNICODE)
+
+    def _write_interaction_keys(self, out):
+        edgekeyset=set(['interaction', 'key'])
+        for entry in edgekeyset:
+            kattrib={}
+            kattrib['for'] = GraphMLExporter.EDGE
+            kattrib['id'] = entry
+            kattrib[GraphMLExporter.ATTR_NAME] = entry
+            kattrib[GraphMLExporter.ATTR_TYPE] = 'string'
+            k = ET.Element('key', attrib=kattrib)
+            ET.ElementTree(k).write(out, encoding=UNICODE)
+        return edgekeyset
+
+    def _generate_xml_for_edge_keys(self, out):
+        """
+        Creates and writes xml for data in the_keys variable to
+        out stream
+        :param out: Output stream
+        :param the_keys: dict of key data to convert to xml
+        :return:
+        """
+        edgekeyset=self._write_interaction_keys(out)
+        for id, edge in self._cxnetwork.get_edges():
+            for edgeattr in self._cxnetwork.get_edge_attributes(edge):
+                logger.info(str(edgeattr))
+                kattrib = {}
+                n_key = self._translate_edge_key_names(edgeattr[N_KEY])
+                if n_key in edgekeyset:
+                    continue
+
+                edgekeyset.add(n_key)
+
+                kattrib[GraphMLExporter.ATTR_NAME] = n_key
+                value = edgeattr[V_KEY]
+                if value is None:
+                    logger.info('value is none')
+                else:
+                    if D_KEY in edgeattr.keys():
+                        kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(edgeattr[D_KEY])
+                    else:
+                        kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(value).__name__)
+                kattrib['for'] = GraphMLExporter.EDGE
+                kattrib['id'] = n_key
+
+                k = ET.Element('key', attrib=kattrib)
+                ET.ElementTree(k).write(out, encoding=UNICODE)
 
     def _generate_xml(self, out):
         """
@@ -416,27 +373,20 @@ class GraphMLExporter(NDexExporter):
         :param out: Output stream
         :return:
         """
-        self._add_node_attributes_to_nodes()
-        self._add_edge_attributes_to_edges()
-        self._extract_network_name()
-        self._extract_network_keys()
-        self._extract_node_keys()
-        self._extract_edge_keys()
-
         out.write('<?xml version="1.0" encoding="UTF-8" ' +
                   'standalone="no"?>' + '\n' +
                   '<graphml xmlns="http://graphml.' +
                   'graphdrawing.org/xmlns">\n')
-        logger.info('Split json data by aspect')
-        self._generate_xml_for_keys(out, self._keys_net)
-        self._generate_xml_for_keys(out, self._keys_node)
-        self._generate_xml_for_keys(out, self._keys_edge)
 
-        # @TODO figure out way to determine what edgedefault should be set to
-        out.write('  <graph edgedefault="directed" id="' +
-                  str(self._network_name) + '">\n')
+        self._generate_xml_for_net_keys(out)
+        self._generate_xml_for_node_keys(out)
+        self._generate_xml_for_edge_keys(out)
 
-        self._generate_xml_for_network_keys(out)
+        # @TODO figure out way to determine what q should be set to
+        out.write('\n  <graph edgedefault="directed" id="' +
+                  str(self._cxnetwork.get_name()) + '">\n')
+
+        self._generate_xml_for_data(out)
         self._generate_xml_for_nodes(out)
         self._generate_xml_for_edges(out)
         out.write('\n</graph>\n</graphml>\n')
@@ -459,8 +409,7 @@ class GraphMLExporter(NDexExporter):
         """
         self._clear_internal_variables()
         logger.info('Reading inputstream')
-        json_data = json.load(inputstream)
-        self._split_json(json_data)
+        self._loadcx(inputstream)
         logger.info('Writing xml')
         self._generate_xml(outputstream)
         logger.info('Completed writing xml')
