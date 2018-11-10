@@ -4,8 +4,8 @@
 """Tests for `ndex_webapp_python_exporters` package."""
 
 import io
-import json
 import unittest
+import tempfile
 
 from ndex_webapp_python_exporters.exporters import NDexExporter
 from ndex_webapp_python_exporters.exporters import GraphMLExporter
@@ -16,30 +16,53 @@ class TestExporters(unittest.TestCase):
 
     def get_small_network_withsubnet(self):
         return """[{"numberVerification": [{"longNumber": 281474976710655}]},
-         {"metaData": [{"idCounter": 0, "name": "nodes"}, {"idCounter": 0,
-          "name": "edges"}]}, {"networkAttributes": [{"v": "Test Types", "n":
-           "name"}]}, {"subNetworks": [{"nodes": [1, 2, 3], "edges": [1, 2],
-            "@id": 0}]}, {"cyViews": [{"s": 0, "@id": 0}]}, {"nodes": [{"@id":
-             1, "n": "Node with Types"}]}, {"nodes": [{"@id": 2, "n": "A"}]},
-              {"nodes": [{"@id": 3, "n": "B"}]}, {"edges": [{"i":
-               "interacts_with", "s": 1, "@id": 1, "t": 2}]}, {"edges":
-                [{"i": "interacts_with", "s": 1, "@id": 2, "t": 3}]},
-                 {"nodeAttributes": [{"d": "list_of_long", "v": [5, 75],
-                  "po": 1, "n": "long_list"}, {"d": "integer", "v": 5, "po":
-                   1, "n": "int"}, {"d": "double", "v": 2.5, "po": 1, "n":
-                    "double"}, {"d": "list_of_integer", "v": [5, -20], "po":
-                     1, "n": "int_list"}, {"d": "list_of_double", "v": [2.5,
-                      3.7], "po": 1, "n": "double_list"}, {"d": "long", "v":
-                       5, "po": 1, "n": "long"}, {"d": "list_of_string", "v":
-                        ["mystring", "myotherstring"], "po": 1, "n":
-                         "string_list"}, {"d": "boolean", "v": true, "po": 1,
-                          "n": "bool"}, {"d": "list_of_boolean", "v": [false,
-                           true], "po": 1, "n": "bool_list"}, {"v":
-                            "mystring", "po": 1, "n": "string"}]},
-                             {"edgeAttributes": [{"v": "interacts_with", "po":
-                              1, "n": "interaction"}]}, {"edgeAttributes":
-                               [{"v": "interacts_with", "po": 2, "n":
-                                "interaction"}]}]"""
+         {"metaData": [{"consistencyGroup": 1, "elementCount": 1,
+          "lastUpdate": 1493670999647, "name": "ndexStatus", "properties":
+           [], "version": "1.0"}, {"consistencyGroup": 1, "elementCount": 1,
+            "lastUpdate": 1493670999655, "name": "provenanceHistory",
+             "properties": [], "version": "1.0"}, {"consistencyGroup": 1,
+              "elementCount": 1, "lastUpdate": 1492530173.8275478, "name":
+               "@context", "properties": [], "version": "1.0"},
+                {"consistencyGroup": 1, "elementCount": 6, "lastUpdate":
+                 1492530173.827551, "name": "networkAttributes",
+                  "properties": [], "version": "1.0"}, {"consistencyGroup":
+                   1, "elementCount": 2, "idCounter": 2, "lastUpdate":
+                    1492530173.827552, "name": "nodes", "properties":
+                     [], "version": "1.0"}, {"consistencyGroup": 1,
+                      "elementCount": 6, "lastUpdate": 1492530173.827553,
+                       "name": "nodeAttributes", "properties": [],
+                        "version": "1.0"}, {"consistencyGroup": 1,
+                         "elementCount": 1, "idCounter": 1, "lastUpdate":
+                          1492530173.827553, "name": "edges", "properties":
+                           [], "version": "1.0"}, {"consistencyGroup": 1,
+                            "elementCount": 5, "lastUpdate": 1492530173.827554,
+                             "name": "edgeAttributes", "properties": [],
+                              "version": "1.0"}]}, {"ndexStatus":
+                               [{"externalId": "aef60609-244d-11e7-8f50-0ac135e8bacf",
+                                "creationTime": 1492530172454, "modificationTime":
+                                 1493670999647, "visibility": "PRIVATE",
+                                  "published": false, "nodeCount": 2,
+                                   "edgeCount": 1, "owner": "drh", "ndexServerURI":
+                                    "http://public.ndexbio.org", "readOnly": false}]},
+                                     {"@context": [{"HGNC":
+                                      "http://resources.openbel.org/belframework/20150611/namespace/hgnc-human-genes.belns",
+                                       "CHEBI": "http://resources.openbel.org/belframework/20150611/namespace/chebi.belns"}]},
+                                        {"networkAttributes": [{"n": "name", "v": "GPCR Test Document 1"}, {"n": "description",
+                                         "v": "hello"}, {"n": "version", "v": "0.1"}, {"n": "authors", "v": "Dexter"},
+                                          {"n": "contact", "v": "NA"}, {"n": "ndex:sourceFormat", "v": "PyBEL"}]},
+                                           {"nodes": [{"@id": 0, "n": "GNAS"}, {"@id": 1, "n": "AKT1"}]},
+                                            {"nodeAttributes": [{"po": 0, "n": "function", "v": "Protein"},
+                                             {"po": 0, "n": "namespace", "v": "HGNC"}, {"po": 0, "n":
+                                              "identifier", "v": "GNAS"}, {"po": 1, "n": "function",
+                                               "v": "Protein"}, {"po": 1, "n": "namespace", "v": "HGNC"},
+                                                {"po": 1, "n": "identifier", "v": "AKT1"}]}, {"edges": 
+                                                [{"@id": 0, "s": 0, "t": 1, "i": "decreases"}]}, 
+                                                {"edgeAttributes": [{"po": 0, "n": "evidence", "v": "blah"},
+                                                 {"po": 0, "n": "citation_type", "v": "PubMed"}, 
+                                                 {"po": 0, "n": "citation_name", "v": "Inact"},
+                                                  {"po": 0, "n": "citation_reference", "v": "25961504"},
+                                                   {"po": 0, "n": "PERTURBATION_METHOD", "v": "Cre-Lox Knockout"}]}, 
+                                                   {"status": [{"error": "", "success": true}]}]"""
 
     def setUp(self):
         """Set up test fixtures, if any."""
@@ -57,41 +80,25 @@ class TestExporters(unittest.TestCase):
 
     def test_graphmlexporter_clear_internal_variables(self):
         ge = GraphMLExporter()
-        self.assertEqual(ge._nodes, None)
-        self.assertEqual(ge._net_attr, None)
-        self.assertEqual(ge._keys_edge, None)
+        self.assertEqual(ge._cxnetwork, None)
 
         ge._clear_internal_variables()
-        self.assertEqual(ge._nodes, None)
-        self.assertEqual(ge._net_attr, None)
-        self.assertEqual(ge._keys_edge, None)
+        self.assertEqual(ge._cxnetwork, None)
 
-        ge._nodes = 'hi'
+        ge._cxnetwork = 'hi'
         ge._clear_internal_variables()
-        self.assertEqual(ge._nodes, None)
-
-    def test_graphmlexporter_split_json(self):
-        ge = GraphMLExporter()
-        ge._split_json(None)
-        self.assertEqual(ge._nodes, None)
-
-        data = json.loads(self.get_small_network_withsubnet())
-        ge._split_json(data)
-        self.assertEqual(len(ge._nodes), 3)
-        self.assertEqual(len(ge._edges[0]), 4)
-        self.assertEqual(ge._node_attr[0]['po'], 1)
-        self.assertEqual(ge._edge_attr[0]['po'], 1)
-        self.assertEqual(ge._net_attr[0]['n'], 'name')
+        self.assertEqual(ge._cxnetwork, None)
 
     def test_graphmlexporter_small_network(self):
+
         ge = GraphMLExporter()
         fakein = io.StringIO(self.get_small_network_withsubnet())
         fakeout = io.StringIO()
+
         ge.export(fakein, fakeout)
-        import sys
-        sys.stdout.write(fakeout.getvalue())
+        print(fakeout.getvalue())
         self.assertTrue(fakeout.getvalue().
                         startswith('<?xml version="1.0" '
                                    'encoding="UTF-8" standalone="no"?>'))
-        self.assertTrue('<node id="2"><data key="name">A</data></node>' in
+        self.assertTrue('<node id="1"><data key="name">AKT1</data>' in
                         fakeout.getvalue())
