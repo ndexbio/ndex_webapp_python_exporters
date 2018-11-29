@@ -9,6 +9,8 @@ ndex-webapp-python-exporters
 .. image:: https://img.shields.io/travis/ndexbio/ndex_webapp_python_exporters.svg
         :target: https://travis-ci.org/ndexbio/ndex_webapp_python_exporters
 
+.. image:: https://coveralls.io/repos/github/ndexbio/ndex_webapp_python_exporters/badge.svg?branch=master
+        :target: https://coveralls.io/github/ndexbio/ndex_webapp_python_exporters?branch=master
 
 Command line exporters written in Python used by the NDex REST service.
 
