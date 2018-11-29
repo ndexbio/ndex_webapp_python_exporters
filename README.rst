@@ -62,7 +62,7 @@ The example below assumes **foo.cx** is a file in `NDex CX`_ format
 Credits
 -------
 
-
+* `Graphml`_ exporter derived from code developed by Cecilia Zhang
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
