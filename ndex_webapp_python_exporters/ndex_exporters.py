@@ -62,12 +62,12 @@ def main(args):
 
     This tool is used by NDex website to convert network files in NDEx CX
     format to other formats.
-    
+
     This tool expects the network files to be piped in via standard in and
-    writes output to standard out. 
+    writes output to standard out.
 
     If export is successful an exit code of 0 is written otherwise a non-zero
-    exit code is returned for failure. Errors as well as debug logging 
+    exit code is returned for failure. Errors as well as debug logging
     (see -v flag) are written to standard error.
 
     The sole required argument defines which exporter is run.
@@ -76,7 +76,7 @@ def main(args):
 
     graphml
       -- http://graphml.graphdrawing.org/
-      
+
     For information on NDex CX format see: http://www.ndexbio.org/
 
     """.format(version=ndex_webapp_python_exporters.__version__)
