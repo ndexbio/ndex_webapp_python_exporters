@@ -42,7 +42,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     scripts=['ndex_webapp_python_exporters/ndex_exporters.py'],
-    description="Python Boilerplate contains all the boilerplate you need to create a Python package.",
+    description="Command line exporters written in Python used by the NDex REST service",
     install_requires=requirements,
     license="BSD license",
     long_description=readme + '\n\n' + history,
