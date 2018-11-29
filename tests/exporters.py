@@ -9,7 +9,7 @@ import tempfile
 
 from ndex_webapp_python_exporters.exporters import NDexExporter
 from ndex_webapp_python_exporters.exporters import GraphMLExporter
-
+from ndex_webapp_python_exporters import exporters
 
 class TestExporters(unittest.TestCase):
     """Tests for `ndex_webapp_python_exporters` package."""
@@ -77,6 +77,28 @@ class TestExporters(unittest.TestCase):
             self.fail('Expected NotImplementedError')
         except NotImplementedError as nie:
             self.assertEqual(str(nie), 'Should be implemented by subclass')
+
+    def test_graphmlexporter_convert_data_type(self):
+        ge = GraphMLExporter()
+        self.assertEqual(ge._convert_data_type('foo'), 'foo')
+        self.assertEqual(ge._convert_data_type('int'), 'integer')
+        self.assertEqual(ge._convert_data_type('str'), 'string')
+        self.assertEqual(ge._convert_data_type('bool'), 'boolean')
+
+    def test_graphmlexporter_translate_edge_key(self):
+        ge = GraphMLExporter()
+        self.assertEqual(ge._translate_edge_key_names('foo'), 'foo')
+        self.assertEqual(ge._translate_edge_key_names('i'), 'interaction')
+        self.assertEqual(ge._translate_edge_key_names(exporters.AT_ID_KEY),
+                         'key')
+
+    def test_graphmlexporter_translate_node_key_names(self):
+        ge = GraphMLExporter()
+        self.assertEqual(ge._translate_node_key_names('blah'), 'blah')
+        self.assertEqual(ge._translate_node_key_names(exporters.N_KEY),
+                         'name')
+        self.assertEqual(ge._translate_node_key_names(exporters.R_KEY),
+                         'represents')
 
     def test_graphmlexporter_clear_internal_variables(self):
         ge = GraphMLExporter()
