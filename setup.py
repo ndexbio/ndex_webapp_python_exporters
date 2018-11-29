@@ -50,7 +50,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://github.com/coleslaw481/ndex_webapp_python_exporters',
+    url='https://github.com/ndexbio/ndex_webapp_python_exporters',
     version='0.1.0',
     zip_safe=False,
 )

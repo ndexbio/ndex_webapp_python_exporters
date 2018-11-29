@@ -6,8 +6,8 @@ ndex-webapp-python-exporters
 .. image:: https://img.shields.io/pypi/v/ndex_webapp_python_exporters.svg
         :target: https://pypi.python.org/pypi/ndex_webapp_python_exporters
 
-.. image:: https://img.shields.io/travis/coleslaw481/ndex_webapp_python_exporters.svg
-        :target: https://travis-ci.org/coleslaw481/ndex_webapp_python_exporters
+.. image:: https://img.shields.io/travis/ndexbio/ndex_webapp_python_exporters.svg
+        :target: https://travis-ci.org/ndexbio/ndex_webapp_python_exporters
 
 
 Command line exporters written in Python used by the NDex REST service.
@@ -45,7 +45,7 @@ Or directly from repo (requires git)
 
 ::
 
- git clone https://github.com/coleslaw481/ndex_webapp_python_exporters.git
+ git clone https://github.com/ndexbio/ndex_webapp_python_exporters.git
  cd ndex_webapp_python_exporters
  python setup.py install
 
