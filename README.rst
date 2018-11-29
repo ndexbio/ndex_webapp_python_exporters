@@ -21,7 +21,7 @@ Command line exporters written in Python used by the NDex REST service.
 Tools
 -----
 
-* **ndex_exporters.py** Takes file in `NDex CX`_ format and converts to format specified on command line
+* **ndex_exporters.py** Takes file in `NDex CX`_ format and converts to format specified as a command line argument
 
 
 Dependencies
@@ -60,6 +60,11 @@ The example below assumes **foo.cx** is a file in `NDex CX`_ format
 ::
 
  cat foo.cx | ndex_exporters.py graphml > foo.graphml
+
+**NOTE:** For the above example, the network `Thyroid Cancer <http://www.ndexbio.org/#/network/54a9a35b-1e5f-11e8-b939-0ac135e8bacf>`_ can be downloaded
+as a file named **foo.cx** in `NDex CX`_ format.
+
+
 
 Credits
 -------
