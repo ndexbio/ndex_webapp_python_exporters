@@ -16,6 +16,7 @@ GRAPHML_MODE = 'graphml'
 FILE_FLAG = 'file'
 OUT_FLAG = 'out'
 
+
 def _parse_arguments(desc, args):
     """Parses command line arguments"""
     help_formatter = argparse.RawDescriptionHelpFormatter
@@ -31,7 +32,8 @@ def _parse_arguments(desc, args):
                         help='Increases logging verbosity, max is 4',
                         default=1)
     parser.add_argument('--version', action='version',
-                        version=('%(prog)s ' + ndex_webapp_python_exporters.__version__))
+                        version=('%(prog)s ' +
+                                 ndex_webapp_python_exporters.__version__))
     return parser.parse_args(args)
 
 
@@ -55,9 +57,29 @@ def _setuplogging(theargs):
 
 def main(args):
     """Main entry point"""
-    desc = """Contains various NDex CX data exporters
-              
-    """
+    desc = """
+    Version {version}
+
+    This tool is used by NDex website to convert network files in NDEx CX
+    format to other formats.
+    
+    This tool expects the network files to be piped in via standard in and
+    writes output to standard out. 
+
+    If export is successful an exit code of 0 is written otherwise a non-zero
+    exit code is returned for failure. Errors as well as debug logging 
+    (see -v flag) are written to standard error.
+
+    The sole required argument defines which exporter is run.
+
+    Currently supported exporters
+
+    graphml
+      -- http://graphml.graphdrawing.org/
+      
+    For information on NDex CX format see: http://www.ndexbio.org/
+
+    """.format(version=ndex_webapp_python_exporters.__version__)
     theargs = _parse_arguments(desc, args[1:])
     theargs.program = args[0]
     theargs.version = ndex_webapp_python_exporters.__version__
@@ -80,7 +102,7 @@ def main(args):
             output_stream = theargs.out
 
         return exporter.export(input_stream, output_stream)
-    except Exception as e:
+    except Exception:
         logger.exception("Error caught exception")
         return 2
     finally:

@@ -73,7 +73,8 @@ class GraphMLExporter(NDexExporter):
 
     def _loadcx(self, inputstream):
         logger.info('Loading CX data')
-        self._cxnetwork = ndex2.create_nice_cx_from_raw_cx(json.load(inputstream))
+        self._cxnetwork = ndex2.\
+            create_nice_cx_from_raw_cx(json.load(inputstream))
 
     def _convert_data_type(self, data_type):
         """Converts Python data types (int, str, bool) to types
@@ -214,7 +215,7 @@ class GraphMLExporter(NDexExporter):
         :param the_keys: dict of key data to convert to xml
         :return:
         """
-        netkeyset=set()
+        netkeyset = set()
 
         for netattr in self._cxnetwork.networkAttributes:
             logger.info('NET attr' + str(netattr))
@@ -231,9 +232,11 @@ class GraphMLExporter(NDexExporter):
                 logger.info('value is none')
             else:
                 if D_KEY in netattr.keys():
-                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(netattr[D_KEY])
+                    kattrib[GraphMLExporter.ATTR_TYPE] = \
+                        self._convert_data_type(netattr[D_KEY])
                 else:
-                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(value).__name__)
+                    kattrib[GraphMLExporter.ATTR_TYPE] = \
+                        self._convert_data_type(type(value).__name__)
             kattrib['for'] = 'graph'
             kattrib['id'] = n_key
 
@@ -241,9 +244,9 @@ class GraphMLExporter(NDexExporter):
             ET.ElementTree(k).write(out, encoding=UNICODE)
 
     def _write_name_represents_keys(self, out):
-        nodekeyset=set(['name', 'represents'])
+        nodekeyset = set(['name', 'represents'])
         for entry in nodekeyset:
-            kattrib={}
+            kattrib = {}
             kattrib['for'] = 'node'
             kattrib['id'] = entry
             kattrib[GraphMLExporter.ATTR_NAME] = entry
@@ -261,7 +264,7 @@ class GraphMLExporter(NDexExporter):
         :return:
         """
 
-        nodekeyset=self._write_name_represents_keys(out)
+        nodekeyset = self._write_name_represents_keys(out)
         for id, node in self._cxnetwork.get_nodes():
             logger.info('node in keys ' + str(node))
             for nid, val in node.items():
@@ -270,12 +273,13 @@ class GraphMLExporter(NDexExporter):
                 if nid in nodekeyset:
                     continue
                 nodekeyset.add(nid)
-                kattrib={}
+                kattrib = {}
                 kattrib[GraphMLExporter.ATTR_NAME] = nid
                 if val is None:
                     logger.info('value is none')
                 else:
-                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(val).__name__)
+                    kattrib[GraphMLExporter.ATTR_TYPE] = \
+                        self._convert_data_type(type(val).__name__)
                 kattrib['for'] = 'node'
                 kattrib['id'] = nid
 
@@ -296,7 +300,8 @@ class GraphMLExporter(NDexExporter):
                 if value is None:
                     logger.info('value is none')
                 else:
-                    kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(value).__name__)
+                    kattrib[GraphMLExporter.ATTR_TYPE] = \
+                        self._convert_data_type(type(value).__name__)
                 kattrib['for'] = 'node'
                 kattrib['id'] = n_key
 
@@ -304,9 +309,9 @@ class GraphMLExporter(NDexExporter):
                 ET.ElementTree(k).write(out, encoding=UNICODE)
 
     def _write_interaction_keys(self, out):
-        edgekeyset=set(['interaction', 'key'])
+        edgekeyset = set(['interaction', 'key'])
         for entry in edgekeyset:
-            kattrib={}
+            kattrib = {}
             kattrib['for'] = GraphMLExporter.EDGE
             kattrib['id'] = entry
             kattrib[GraphMLExporter.ATTR_NAME] = entry
@@ -323,7 +328,7 @@ class GraphMLExporter(NDexExporter):
         :param the_keys: dict of key data to convert to xml
         :return:
         """
-        edgekeyset=self._write_interaction_keys(out)
+        edgekeyset = self._write_interaction_keys(out)
         for id, edge in self._cxnetwork.get_edges():
             for edgeattr in self._cxnetwork.get_edge_attributes(edge):
                 logger.info(str(edgeattr))
@@ -340,9 +345,11 @@ class GraphMLExporter(NDexExporter):
                     logger.info('value is none')
                 else:
                     if D_KEY in edgeattr.keys():
-                        kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(edgeattr[D_KEY])
+                        kattrib[GraphMLExporter.ATTR_TYPE] = \
+                            self._convert_data_type(edgeattr[D_KEY])
                     else:
-                        kattrib[GraphMLExporter.ATTR_TYPE] = self._convert_data_type(type(value).__name__)
+                        kattrib[GraphMLExporter.ATTR_TYPE] = \
+                            self._convert_data_type(type(value).__name__)
                 kattrib['for'] = GraphMLExporter.EDGE
                 kattrib['id'] = n_key
 

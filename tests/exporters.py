@@ -5,11 +5,11 @@
 
 import io
 import unittest
-import tempfile
 
 from ndex_webapp_python_exporters.exporters import NDexExporter
 from ndex_webapp_python_exporters.exporters import GraphMLExporter
 from ndex_webapp_python_exporters import exporters
+
 
 class TestExporters(unittest.TestCase):
     """Tests for `ndex_webapp_python_exporters` package."""
@@ -55,14 +55,14 @@ class TestExporters(unittest.TestCase):
                                              {"po": 0, "n": "namespace", "v": "HGNC"}, {"po": 0, "n":
                                               "identifier", "v": "GNAS"}, {"po": 1, "n": "function",
                                                "v": "Protein"}, {"po": 1, "n": "namespace", "v": "HGNC"},
-                                                {"po": 1, "n": "identifier", "v": "AKT1"}]}, {"edges": 
-                                                [{"@id": 0, "s": 0, "t": 1, "i": "decreases"}]}, 
+                                                {"po": 1, "n": "identifier", "v": "AKT1"}]}, {"edges":
+                                                [{"@id": 0, "s": 0, "t": 1, "i": "decreases"}]},
                                                 {"edgeAttributes": [{"po": 0, "n": "evidence", "v": "blah"},
-                                                 {"po": 0, "n": "citation_type", "v": "PubMed"}, 
+                                                 {"po": 0, "n": "citation_type", "v": "PubMed"},
                                                  {"po": 0, "n": "citation_name", "v": "Inact"},
                                                   {"po": 0, "n": "citation_reference", "v": "25961504"},
-                                                   {"po": 0, "n": "PERTURBATION_METHOD", "v": "Cre-Lox Knockout"}]}, 
-                                                   {"status": [{"error": "", "success": true}]}]"""
+                                                   {"po": 0, "n": "PERTURBATION_METHOD", "v": "Cre-Lox Knockout"}]},
+                                                   {"status": [{"error": "", "success": true}]}]""" # noqa
 
     def setUp(self):
         """Set up test fixtures, if any."""

@@ -49,5 +49,3 @@ class TestNDexExporters(unittest.TestCase):
 
         finally:
             shutil.rmtree(temp_dir)
-
-
