@@ -101,22 +101,6 @@ class GraphMLExporter(NDexExporter):
             return 'represents'
         return val
 
-    def _generate_xml_for_network_keys(self, out):
-        """Creates and writes to out stream an xml fragment
-           for keys
-        """
-        if self._net_attr is None:
-            logger.debug('No network attributes found. ' +
-                         'Skipping generation of data tags for graph')
-            return
-        for netattr in self._net_attr:
-            if netattr.get(N_KEY) != "name":
-                d = ET.Element(GraphMLExporter.DATA,
-                               attrib={GraphMLExporter.KEY: str(netattr.get(N_KEY))})
-                d.text = str(netattr[V_KEY])
-                ET.ElementTree(d).write(out, encoding=UNICODE)
-                out.write('\n')
-
     def _get_xml_for_under_node(self, node):
         """
         Creates data xml fragments for node passed in
