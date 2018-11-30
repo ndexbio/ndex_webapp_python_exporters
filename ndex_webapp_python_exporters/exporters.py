@@ -164,7 +164,11 @@ class GraphMLExporter(NDexExporter):
             n.text = str(val)
             el.append(n)
 
+        if self._cxnetwork.get_edge_attributes(edge) is None:
+            return el
         for edgeattr in self._cxnetwork.get_edge_attributes(edge):
+            if edgeattr is None:
+                continue
             logger.info("Edge attr: " + str(edgeattr))
             eattrib = {}
             edge_key = edgeattr[N_KEY]
@@ -332,7 +336,11 @@ class GraphMLExporter(NDexExporter):
         """
         edgekeyset = self._write_interaction_keys(out)
         for id, edge in self._cxnetwork.get_edges():
+            if self._cxnetwork.get_edge_attributes(edge) is None:
+                continue
             for edgeattr in self._cxnetwork.get_edge_attributes(edge):
+                if edgeattr is None:
+                    continue
                 logger.info(str(edgeattr))
                 kattrib = {}
                 n_key = self._translate_edge_key_names(edgeattr[N_KEY])
