@@ -84,6 +84,7 @@ class TestExporters(unittest.TestCase):
         self.assertEqual(ge._convert_data_type('int'), 'integer')
         self.assertEqual(ge._convert_data_type('str'), 'string')
         self.assertEqual(ge._convert_data_type('bool'), 'boolean')
+        self.assertEqual(ge._convert_data_type('float'), 'double')
 
     def test_graphmlexporter_translate_edge_key(self):
         ge = GraphMLExporter()

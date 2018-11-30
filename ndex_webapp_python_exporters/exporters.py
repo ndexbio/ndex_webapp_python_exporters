@@ -86,6 +86,8 @@ class GraphMLExporter(NDexExporter):
             return "string"
         if data_type == "bool":
             return "boolean"
+        if data_type == "float":
+            return "double"
         return data_type
 
     def _translate_edge_key_names(self, val):
