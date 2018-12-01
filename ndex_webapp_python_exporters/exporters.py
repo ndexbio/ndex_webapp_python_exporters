@@ -119,7 +119,13 @@ class GraphMLExporter(NDexExporter):
             n = ET.Element('data', attrib={'key': kval})
             n.text = str(val)
             el.append(n)
+
+        if self._cxnetwork.get_node_attributes(node) is None:
+            return el
+
         for nitem in self._cxnetwork.get_node_attributes(node):
+            if nitem is None:
+                continue
             logger.info('Node attrib: ' + str(nitem))
             nid = nitem[N_KEY]
 
@@ -138,7 +144,8 @@ class GraphMLExporter(NDexExporter):
         :param out: Output stream
         :return:
         """
-
+        if self._cxnetwork.get_nodes() is None:
+            return
         for node_key, node_val in self._cxnetwork.get_nodes():
             n = ET.Element(GraphMLExporter.NODE,
                            attrib={GraphMLExporter.ID: str(node_key)})
@@ -292,7 +299,12 @@ class GraphMLExporter(NDexExporter):
                 k = ET.Element('key', attrib=kattrib)
                 ET.ElementTree(k).write(out, encoding=UNICODE)
 
+            if self._cxnetwork.get_node_attributes(node) is None:
+                return
             for nodeattr in self._cxnetwork.get_node_attributes(node):
+                if nodeattr is None:
+                    continue
+
                 logger.info(str(nodeattr))
                 kattrib = {}
                 n_key = self._translate_node_key_names(nodeattr[N_KEY])
