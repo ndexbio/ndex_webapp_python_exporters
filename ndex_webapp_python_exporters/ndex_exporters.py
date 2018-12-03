@@ -5,6 +5,7 @@ import argparse
 import logging
 import ndex_webapp_python_exporters
 from ndex_webapp_python_exporters.exporters import GraphMLExporter
+from ndex_webapp_python_exporters.exporters import ExcelViaPandasExporter
 
 
 logger = logging.getLogger('ndex_exporters')
@@ -13,6 +14,7 @@ LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
 GRAPHML_MODE = 'graphml'
+EXCEL_MODE = 'excel'
 FILE_FLAG = 'file'
 OUT_FLAG = 'out'
 
@@ -23,7 +25,7 @@ def _parse_arguments(desc, args):
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=help_formatter)
     parser.add_argument('exporter', help='Specifies exporter to run',
-                        choices=[GRAPHML_MODE])
+                        choices=[GRAPHML_MODE, EXCEL_MODE])
     parser.add_argument('--' + FILE_FLAG, '-f', default=None,
                         help='Read from this file instead of standard in')
     parser.add_argument('--' + OUT_FLAG, '-o', default=None,
@@ -76,6 +78,9 @@ def main(args):
 
     graphml
       -- http://graphml.graphdrawing.org/
+      
+    excel 
+      -- This is experimental and may contain errors
 
     For information on NDex CX format see: http://www.ndexbio.org/
 
@@ -89,6 +94,8 @@ def main(args):
         exporter = None
         if GRAPHML_MODE in theargs.exporter:
             exporter = GraphMLExporter()
+        elif EXCEL_MODE in theargs.exporter:
+            exporter = ExcelViaPandasExporter()
 
         if exporter is None:
             raise NotImplementedError('Unable to construct Exporter object')

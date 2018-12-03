@@ -19,7 +19,9 @@ with open(os.path.join('ndex_webapp_python_exporters','__init__.py')) as ver_fil
  
 requirements = [ 
     "argparse",
-    "ndex2"
+    "ndex2",
+    "numpy",
+    "pandas"
 ]
 
 setup_requirements = [ ]
@@ -28,6 +30,8 @@ test_requirements = [
     "argparse",
     "ndex2",
     "networkx==1.11",
+    "numpy",
+    "pandas",
     "unittest2"
 ]
 

@@ -3,8 +3,10 @@
 """Main module."""
 
 import logging
-import json
 import xml.etree.cElementTree as ET
+import json
+import numpy as np
+import pandas as pd
 import ndex2
 
 logger = logging.getLogger(__name__)
@@ -428,3 +430,240 @@ class GraphMLExporter(NDexExporter):
         logger.info('Completed writing xml')
         outputstream.flush()
         return 0
+
+
+class ExcelViaPandasExporter(NDexExporter):
+    """Excel exporter written by Cecilia Zhang that leverages
+       Pandas framework
+    """
+    def __init__(self):
+        """Constructor"""
+        pass
+
+    def get_adjusted_cx(self, inputstream):
+        """Takes NDEx CX data from inputstream and adjusts it
+           returning an ndex2 CX object
+        :returns: NDEx2 CX object
+        """
+        raw_cx = json.load(inputstream)
+        counter = 0
+        position_n = 0
+        position_e = 0
+        position_net = 0
+        new_node_attr_list = []
+        new_edge_attr_list = []
+        context = []
+        for section in raw_cx:
+            for name_section, info in section.items():
+                if name_section == "nodes":
+                    for node in info:
+                        if node.get("@id"):
+                            new_attr_n = {}
+                            id = node["@id"]
+                            new_attr_n["po"] = id
+                            new_attr_n["n"] = "cx node id"
+                            new_attr_n["v"] = id
+                            new_node_attr_list.append(new_attr_n)
+                        if node.get("r"):
+                            new_attr_r = {}
+                            represents = node.get("r")
+                            new_attr_r["po"] = node["@id"]
+                            new_attr_r["n"] = "ID"
+                            new_attr_r["v"] = represents
+                            new_node_attr_list.append(new_attr_r)
+
+                if name_section == "edges":
+                    for edge in info:
+                        new_attr = {}
+                        id = edge["@id"]
+                        new_attr["po"] = id
+                        new_attr["n"] = "cx edge id"
+                        new_attr["v"] = id
+                        new_edge_attr_list.append(new_attr)
+
+                if name_section == "@context":
+                    temp = {}
+                    temp["n"] = "@context"
+                    temp["v"] = info[0]
+                    context.append(temp)
+                if name_section == "nodeAttributes":
+                    position_n = counter
+                if name_section == "edgeAttributes":
+                    position_e = counter
+                if name_section == "networkAttributes":
+                    position_net = counter
+            counter = counter + 1
+
+        n_attr = raw_cx[position_n].get("nodeAttributes")
+        if n_attr is not None:
+            raw_cx[position_n].get("nodeAttributes").extend(new_node_attr_list)
+
+        e_attr = raw_cx[position_e].get("edgeAttributes")
+        if e_attr is not None:
+            raw_cx[position_e].get("edgeAttributes").extend(new_edge_attr_list)
+
+        net_attr = raw_cx[position_net].get("networkAttributes")
+        if net_attr is not None:
+            raw_cx[position_net].get("networkAttributes").extend(context)
+
+        return ndex2.create_nice_cx_from_raw_cx(raw_cx)
+
+    def check_for_vert_bars(self, df):
+
+        poscol = 0
+        for name, values in df.iteritems():
+            posrow = 0
+            for data_points in values:
+                if type(data_points) is str:
+                    if data_points.find('|') != -1:
+                        data_points = data_points.replace('|', " ")
+                        df.iloc[posrow, poscol] = data_points
+                posrow = posrow + 1
+            poscol = poscol + 1
+
+        return df
+
+    def cx_to_pandas(self, nice_cx, outputstream):
+
+        df = nice_cx.to_pandas_dataframe()
+        df = df.replace({'source_cx node id': np.nan,
+                         'target_cx node id': np.nan}, 0)
+        edges_pandas = pd.DataFrame()
+        nodes_pandas = pd.DataFrame()
+        net_pandas = pd.DataFrame()
+        final_nodes_pandas = pd.DataFrame()
+
+        df = self.check_for_vert_bars(df)
+
+        poscol = 0
+        for name, values in df.iteritems():
+            posrow = 0
+            for data_points in values:
+                if type(data_points) is str:
+                    if data_points.find('"') != -1 and data_points.find(",") != -1:
+                        data_points = data_points.replace(',', '|')
+                        data_points = data_points.replace('"', "")
+                        df.iloc[posrow, poscol] = data_points
+                    elif data_points.find('"') != -1:
+                        data_points = data_points.replace('"', "")
+                        df.iloc[posrow, poscol] = data_points
+                posrow = posrow + 1
+
+            if name == "source" or name == "target":
+                # edges_pandas[name] = values
+                nodes_pandas[name] = values
+            elif name == "source_cx node id":
+                edges_pandas["source cx node id"] = values
+                nodes_pandas[name] = values
+            elif name == "target_cx node id":
+                edges_pandas["target cx node id"] = values
+                nodes_pandas[name] = values
+            elif "source" in name or "target" in name:
+                nodes_pandas[name] = values
+            else:
+                edges_pandas[name] = values
+            poscol = poscol + 1
+
+        # nodes_pandas = nodes_pandas.replace(np.nan, 0, regex=True)
+
+        nodes_organized_s = {}
+        nodes_organized_t = {}
+        counter_s = 0
+        counter_t = 0
+        for source_n in nodes_pandas["source_cx node id"]:
+            if source_n not in nodes_organized_s:
+                nodes_organized_s[int(source_n)] = counter_s
+            counter_s = counter_s + 1
+        for target_n in nodes_pandas["target_cx node id"]:
+            if nodes_organized_s.get(int(target_n)) == None:
+                nodes_organized_t[int(target_n)] = counter_t
+            counter_t = counter_t + 1
+
+        source_cols = {}
+        target_cols = {}
+        counter_columns = 0
+        for name, values in nodes_pandas.iteritems():
+            if name == "source":
+                source_cols["name"] = counter_columns
+            elif name == "target":
+                target_cols["name"] = counter_columns
+            elif "source_" in name:
+                source_cols[name.replace("source_", "")] = counter_columns
+            elif "target_" in name:
+                target_cols[name.replace("target_", "")] = counter_columns
+            counter_columns = counter_columns + 1
+        # print(source_cols)
+
+        nodes_information = {}
+        for columns, col_info in source_cols.items():
+            column_info = []
+            for node, node_info in nodes_organized_s.items():
+                column_info.append(nodes_pandas.iloc[node_info, col_info])
+            nodes_information[columns] = column_info
+        for columns2, col2_info in target_cols.items():
+            column_info2 = []
+            for node2, node2_info in nodes_organized_t.items():
+                column_info2.append(nodes_pandas.iloc[node2_info, col2_info])
+            nodes_information[columns2].extend(column_info2)
+
+        for final_name, final_value in nodes_information.items():
+            final_nodes_pandas[final_name] = final_value
+
+            # print(nodes_pandas.iloc[0,0])
+
+        netnames = []
+        netvalue = []
+        for n_a in nice_cx.networkAttributes:
+            dictna = str(n_a)
+            netattr = json.loads(dictna)
+            netnames.append(netattr.get("n"))
+            temp = str(netattr.get("v"))
+            if netattr.get("n") == "@context":
+                if temp.find("'") != -1:
+                    temp = temp.replace("'", "")
+                    temp = temp.replace(",", "|")
+                    temp = temp.replace("{", "")
+                    temp = temp.replace("}", "")
+            netvalue.append(temp)
+        net_pandas["name"] = netnames
+        net_pandas["value"] = netvalue
+
+        self.reorder(final_nodes_pandas, edges_pandas, net_pandas)
+
+    def reorder(self, nodes_pandas, edges_pandas, net_pandas, outputstream):
+
+        if "interaction" in edges_pandas:
+            order_edges = ['cx edge id', 'source cx node id', 'interaction', 'target cx node id']
+        else:
+            order_edges = ['cx edge id', 'source cx node id', 'target cx node id']
+
+        edges_pandas = edges_pandas[order_edges + [c for c in edges_pandas if c not in order_edges]]
+
+        if "cx node id" in nodes_pandas and "ID" in nodes_pandas:
+            order_nodes = ["cx node id", "name", "ID"]
+        elif "cx node id" in nodes_pandas:
+            order_nodes = ["cx node id", "name"]
+        elif "ID" in nodes_pandas:
+            order_nodes = ["name", "ID"]
+
+        nodes_pandas = nodes_pandas[order_nodes + [c for c in nodes_pandas if c not in order_nodes]]
+        self.pandas_to_excel(nodes_pandas, edges_pandas, net_pandas, outputstream)
+
+    def pandas_to_excel(self, nodes_pandas, edges_pandas, net_pandas, outputstream):
+        writer = pd.ExcelWriter(outputstream, engine='xlsxwriter')
+        nodes_pandas.to_excel(writer, sheet_name='Nodes')
+        edges_pandas.to_excel(writer, sheet_name='Edges')
+        net_pandas.to_excel(writer, sheet_name='Network Properties')
+        writer.save()
+
+    def export(self, inputstream, outputstream):
+        """Implementing subclasses should consume the
+           CX data coming from inputstream and export
+           processed data to outputstream.
+        Sub classes should implement this
+        :param inputstream: Input stream containing CX data
+        :param outputstream: Output stream to write results to
+        :returns int: 0 upon success otherwise 1 or higher for failure
+        """
+        nice_cx = self.get_adjusted_cx(inputstream)
+        self.cx_to_pandas(nice_cx, outputstream)
