@@ -27,7 +27,7 @@ setup_requirements = [ ]
 test_requirements = [ 
     "argparse",
     "ndex2",
-    "networkx",
+    "networkx==1.11",
     "unittest2"
 ]
 
