@@ -138,6 +138,15 @@ class TestExporters(unittest.TestCase):
   "d" : "double"
 }]},{"status":[{"error":"","success":true}]}]""" # noqa
 
+    def get_sixnode_eightedge(self):
+        return """[{"numberVerification":[{"longNumber":281474976710655}]},{"metaData":[{"name":"provenanceHistory","elementCount":1,"version":"1.0","consistencyGroup":1,"properties":[]},{"name":"nodes","elementCount":6,"idCounter":92,"version":"1.0","consistencyGroup":1,"properties":[]},{"name":"edges","elementCount":8,"idCounter":93,"version":"1.0","consistencyGroup":1,"properties":[]},{"name":"networkAttributes","elementCount":3,"version":"1.0","consistencyGroup":1,"properties":[]},{"name":"edgeAttributes","elementCount":16,"version":"1.0","consistencyGroup":1,"properties":[]},{"name":"cartesianLayout","elementCount":6,"version":"1.0","consistencyGroup":1,"properties":[]},{"name":"cyVisualProperties","elementCount":3,"version":"1.0","consistencyGroup":1,"properties":[]}]},
+{"provenanceHistory":[{"entity":{"properties":[],"uri":null,"creationEvent":{"properties":[{"name":"cyNDEx2 Version","value":"2.3.0"},{"name":"Cytoscape Version","value":"3.7.0"},{"name":"dc:title","value":"Query example net"}],"eventType":"CyNDEx-2 Upload","startedAtTime":1543611130591,"endedAtTime":1543611130591,"inputs":null}}}]},
+ {"nodes":[{"@id":74,"n":"F"}, {"@id":72,"n":"E"}, {"@id":70,"n":"D"}, {"@id":68,"n":"C"}, {"@id":66,"n":"B"}, {"@id":64,"n":"A"}]},
+ {"edges":[{"@id":82,"s":72,"t":66,"i":"interacts with"}, {"@id":84,"s":70,"t":68,"i":"interacts with"}, {"@id":86,"s":68,"t":74,"i":"interacts with"}, {"@id":90,"s":66,"t":68,"i":"interacts with"}, {"@id":88,"s":66,"t":74,"i":"interacts with"}, {"@id":80,"s":64,"t":74,"i":"interacts with"}, {"@id":78,"s":64,"t":68,"i":"interacts with"}, {"@id":76,"s":64,"t":66,"i":"interacts with"}]},
+ {"networkAttributes":[{"n":"name","v":"Query example net"}, {"n":"description","v":"used to determine if the query works as expected"}, {"n":"version","v":"1"}]},
+ {"edgeAttributes":[{"po":82,"n":"name","v":"E (interacts with) B"}, {"po":82,"n":"interaction","v":"interacts with"}, {"po":84,"n":"name","v":"D (interacts with) C"}, {"po":84,"n":"interaction","v":"interacts with"}, {"po":86,"n":"name","v":"C (interacts with) F"}, {"po":86,"n":"interaction","v":"interacts with"}, {"po":90,"n":"name","v":"B (interacts with) C"}, {"po":90,"n":"interaction","v":"interacts with"}, {"po":88,"n":"name","v":"B (interacts with) F"}, {"po":88,"n":"interaction","v":"interacts with"}, {"po":80,"n":"name","v":"A (interacts with) F"}, {"po":80,"n":"interaction","v":"interacts with"}, {"po":78,"n":"name","v":"A (interacts with) C"}, {"po":78,"n":"interaction","v":"interacts with"}, {"po":76,"n":"name","v":"A (interacts with) B"}, {"po":76,"n":"interaction","v":"interacts with"}]},
+ {"cartesianLayout":[{"node":74,"x":-362.0,"y":49.0}, {"node":72,"x":-10.0,"y":130.0}, {"node":70,"x":122.0,"y":-56.0}, {"node":68,"x":-27.0,"y":-126.0}, {"node":66,"x":-140.0,"y":44.0}, {"node":64,"x":-264.0,"y":-125.0}]},{"status":[{"error":"","success":true}]}]""" # noqa
+
     def setUp(self):
         """Set up test fixtures, if any."""
 
@@ -252,3 +261,31 @@ class TestExporters(unittest.TestCase):
         self.assertEqual(graph.edge['1']['4']['weight'], 5.789)
         self.assertEqual(graph.edge['2']['3']['weight'], 2.011)
         self.assertEqual(graph.edge['2']['4']['weight'], 7.788)
+
+    def test_six_node_eight_edge_network_graphml_exporter(self):
+        ge = GraphMLExporter()
+        fakein = io.StringIO(self.get_sixnode_eightedge())
+        fakeout = io.StringIO()
+
+        ge.export(fakein, fakeout)
+
+        graph = nx.readwrite.graphml.parse_graphml(fakeout.getvalue())
+        self.assertEqual(len(graph.nodes()), 6)
+        self.assertTrue('64' in graph.nodes())
+        self.assertTrue('66' in graph.nodes())
+        self.assertTrue('68' in graph.nodes())
+        self.assertTrue('70' in graph.nodes())
+        self.assertTrue('72' in graph.nodes())
+        self.assertTrue('74' in graph.nodes())
+
+        self.assertEqual(len(graph.edges()), 8)
+        self.assertTrue(('72', '66') in graph.edges())
+        self.assertTrue(('70', '68') in graph.edges())
+        self.assertTrue(('68', '74') in graph.edges())
+        self.assertTrue(('66', '68') in graph.edges())
+        self.assertTrue(('66', '74') in graph.edges())
+        self.assertTrue(('64', '74') in graph.edges())
+        self.assertTrue(('64', '68') in graph.edges())
+        self.assertTrue(('64', '66') in graph.edges())
+
+        self.assertEqual(graph.edge['72']['66']['name'], 'E (interacts with) B')
