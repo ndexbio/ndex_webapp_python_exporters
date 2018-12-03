@@ -5,10 +5,12 @@
 
 import io
 import unittest
+import networkx as nx
 
 from ndex_webapp_python_exporters.exporters import NDexExporter
 from ndex_webapp_python_exporters.exporters import GraphMLExporter
 from ndex_webapp_python_exporters import exporters
+
 
 
 class TestExporters(unittest.TestCase):
@@ -63,6 +65,78 @@ class TestExporters(unittest.TestCase):
                                                   {"po": 0, "n": "citation_reference", "v": "25961504"},
                                                    {"po": 0, "n": "PERTURBATION_METHOD", "v": "Cre-Lox Knockout"}]},
                                                    {"status": [{"error": "", "success": true}]}]""" # noqa
+
+    def get_four_node_network(self):
+        return """[{"numberVerification":[{"longNumber":281474976710655}]},
+        {"metaData":[{"consistencyGroup":1,"elementCount":1,
+        "lastUpdate":1507591862060,"name":"ndexStatus","properties":[],
+        "version":"1.0"},{"consistencyGroup":1,"elementCount":1,"lastUpdate":1507136211530,
+        "name":"provenanceHistory","properties":[],"version":"1.0"},{"consistencyGroup":1,
+        "elementCount":4,"idCounter":4,"name":"nodes","properties":[],"version":"1.0"},
+        {"consistencyGroup":1,"elementCount":5,"idCounter":14,"name":"edges","properties":[],
+        "version":"1.0"},{"consistencyGroup":1,"elementCount":5,"name":"edgeAttributes",
+        "properties":[],"version":"1.0"}]},{"ndexStatus":[{"externalId":"a0e1b00c-933e-11e7-bcce-06832d634f41",
+        "creationTime":1504728285450,"modificationTime":1507591862060,"visibility":"PUBLIC",
+        "published":false,"nodeCount":4,"edgeCount":5,"owner":"scratch",
+        "ndexServerURI":"http://dev.ndexbio.org","readOnly":true}]},
+         {"provenanceHistory":[{"entity":{"uri":null,"creationEvent":null,"properties":[]}}]}, {"nodes":[{
+  "@id" : 1,
+  "n" : "A"
+}, {
+  "@id" : 2,
+  "n" : "B"
+}, {
+  "@id" : 3,
+  "n" : "C"
+}, {
+  "@id" : 4,
+  "n" : "D"
+}]}, {"edges":[{
+  "@id" : 10,
+  "s" : 1,
+  "t" : 2
+}, {
+  "@id" : 11,
+  "s" : 1,
+  "t" : 3
+}, {
+  "@id" : 12,
+  "s" : 1,
+  "t" : 4
+}, {
+  "@id" : 13,
+  "s" : 2,
+  "t" : 3
+}, {
+  "@id" : 14,
+  "s" : 2,
+  "t" : 4
+}]}, {"edgeAttributes":[{
+  "po" : 10,
+  "n" : "weight",
+  "v" : "1.234",
+  "d" : "double"
+}, {
+  "po" : 11,
+  "n" : "weight",
+  "v" : "2.554",
+  "d" : "double"
+}, {
+  "po" : 12,
+  "n" : "weight",
+  "v" : "5.789",
+  "d" : "double"
+}, {
+  "po" : 13,
+  "n" : "weight",
+  "v" : "2.011",
+  "d" : "double"
+}, {
+  "po" : 14,
+  "n" : "weight",
+  "v" : "7.788",
+  "d" : "double"
+}]},{"status":[{"error":"","success":true}]}]""" # noqa
 
     def setUp(self):
         """Set up test fixtures, if any."""
@@ -119,9 +193,62 @@ class TestExporters(unittest.TestCase):
         fakeout = io.StringIO()
 
         ge.export(fakein, fakeout)
-        print(fakeout.getvalue())
         self.assertTrue(fakeout.getvalue().
                         startswith('<?xml version="1.0" '
                                    'encoding="UTF-8" standalone="no"?>'))
         self.assertTrue('<node id="1"><data key="name">AKT1</data>' in
                         fakeout.getvalue())
+
+        graph = nx.readwrite.graphml.parse_graphml(fakeout.getvalue())
+        self.assertEqual(len(graph.nodes()), 2)
+        self.assertTrue('0' in graph.nodes())
+        self.assertTrue('1' in graph.nodes())
+        self.assertEqual(graph.edges(), [('0', '1')])
+        self.assertEqual(str(graph.graph['name']), 'GPCR Test Document 1')
+        self.assertEqual(str(graph.graph['description']), 'hello')
+        self.assertEqual(str(graph.graph['version']), '0.1')
+        self.assertEqual(str(graph.graph['authors']), 'Dexter')
+        self.assertEqual(str(graph.graph['contact']), 'NA')
+        self.assertEqual(str(graph.graph['ndex:sourceFormat']), 'PyBEL')
+
+        self.assertEqual(graph.node['0']['name'], 'GNAS')
+        self.assertEqual(graph.node['0']['function'], 'Protein')
+        self.assertEqual(graph.node['0']['namespace'], 'HGNC')
+
+        self.assertEqual(graph.node['1']['name'], 'AKT1')
+        self.assertEqual(graph.node['1']['function'], 'Protein')
+        self.assertEqual(graph.node['1']['namespace'], 'HGNC')
+
+        self.assertEqual(graph.edge['0']['1']['interaction'], 'decreases')
+        self.assertEqual(graph.edge['0']['1']['evidence'], 'blah')
+        self.assertEqual(graph.edge['0']['1']['citation_type'], 'PubMed')
+        self.assertEqual(graph.edge['0']['1']['citation_name'], 'Inact')
+        self.assertEqual(graph.edge['0']['1']['citation_reference'], '25961504')
+        self.assertEqual(graph.edge['0']['1']['PERTURBATION_METHOD'], 'Cre-Lox Knockout')
+
+    def test_four_node_network_graphml_exporter(self):
+        ge = GraphMLExporter()
+        fakein = io.StringIO(self.get_four_node_network())
+        fakeout = io.StringIO()
+
+        ge.export(fakein, fakeout)
+
+        graph = nx.readwrite.graphml.parse_graphml(fakeout.getvalue())
+        self.assertEqual(len(graph.nodes()), 4)
+        self.assertTrue('1' in graph.nodes())
+        self.assertTrue('2' in graph.nodes())
+        self.assertTrue('3' in graph.nodes())
+        self.assertTrue('4' in graph.nodes())
+
+        self.assertEqual(len(graph.edges()), 5)
+        self.assertTrue(('1', '2') in graph.edges())
+        self.assertTrue(('1', '3') in graph.edges())
+        self.assertTrue(('1', '4') in graph.edges())
+        self.assertTrue(('2', '3') in graph.edges())
+        self.assertTrue(('2', '4') in graph.edges())
+
+        self.assertEqual(graph.edge['1']['2']['weight'], 1.234)
+        self.assertEqual(graph.edge['1']['3']['weight'], 2.554)
+        self.assertEqual(graph.edge['1']['4']['weight'], 5.789)
+        self.assertEqual(graph.edge['2']['3']['weight'], 2.011)
+        self.assertEqual(graph.edge['2']['4']['weight'], 7.788)
