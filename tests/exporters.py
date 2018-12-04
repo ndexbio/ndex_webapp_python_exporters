@@ -136,6 +136,16 @@ class TestExporters(unittest.TestCase):
   "n" : "weight",
   "v" : "7.788",
   "d" : "double"
+}, {
+  "po" : 10,
+  "n" : "somedata",
+  "v" : "['hi','bye']",
+  "d" : "list"
+}, {
+  "po" : 10,
+  "n" : "haha",
+  "v" : "yoyo",
+  "d" : "list_of_string"
 }]},{"status":[{"error":"","success":true}]}]""" # noqa
 
     def get_sixnode_eightedge(self):
@@ -258,6 +268,11 @@ class TestExporters(unittest.TestCase):
         self.assertTrue(('2', '3') in graph.edges())
         self.assertTrue(('2', '4') in graph.edges())
 
+        # the type was set to list so it was converted to string
+        self.assertEqual(graph.edge['1']['2']['somedata'], "['hi','bye']")
+        # the type was set to list_of_string so it was converted to string
+        self.assertEqual(graph.edge['1']['2']['haha'], 'yoyo')
+        
         self.assertEqual(graph.edge['1']['2']['weight'], 1.234)
         self.assertEqual(graph.edge['1']['3']['weight'], 2.554)
         self.assertEqual(graph.edge['1']['4']['weight'], 5.789)
