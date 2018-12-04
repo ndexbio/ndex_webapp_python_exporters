@@ -272,7 +272,7 @@ class TestExporters(unittest.TestCase):
         self.assertEqual(graph.edge['1']['2']['somedata'], "['hi','bye']")
         # the type was set to list_of_string so it was converted to string
         self.assertEqual(graph.edge['1']['2']['haha'], 'yoyo')
-        
+
         self.assertEqual(graph.edge['1']['2']['weight'], 1.234)
         self.assertEqual(graph.edge['1']['3']['weight'], 2.554)
         self.assertEqual(graph.edge['1']['4']['weight'], 5.789)
