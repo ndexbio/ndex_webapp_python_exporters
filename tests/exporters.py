@@ -111,7 +111,14 @@ class TestExporters(unittest.TestCase):
   "@id" : 14,
   "s" : 2,
   "t" : 4
-}]}, {"edgeAttributes":[{
+}]}, 
+{"nodeAttributes":[{
+  "po" : 1,
+  "n" : "mynode",
+  "v" : "hello",
+  "d" : "str"}
+]},
+{"edgeAttributes":[{
   "po" : 10,
   "n" : "weight",
   "v" : "1.234",
@@ -173,12 +180,22 @@ class TestExporters(unittest.TestCase):
 
     def test_graphmlexporter_convert_data_type(self):
         ge = GraphMLExporter()
-        self.assertEqual(ge._convert_data_type('foo'), 'foo')
-        self.assertEqual(ge._convert_data_type('int'), 'integer')
+        self.assertEqual(ge._convert_data_type('foo'), 'string')
+        self.assertEqual(ge._convert_data_type('int'), 'int')
         self.assertEqual(ge._convert_data_type('str'), 'string')
         self.assertEqual(ge._convert_data_type('bool'), 'boolean')
-        self.assertEqual(ge._convert_data_type('float'), 'double')
+        self.assertEqual(ge._convert_data_type('float'), 'float')
         self.assertEqual(ge._convert_data_type('list'), 'string')
+        self.assertEqual(ge._convert_data_type('list_of_string'), 'string')
+        self.assertEqual(ge._convert_data_type('boolean'), 'boolean')
+        self.assertEqual(ge._convert_data_type('double'), 'double')
+        self.assertEqual(ge._convert_data_type('integer'), 'int')
+        self.assertEqual(ge._convert_data_type('long'), 'long')
+        self.assertEqual(ge._convert_data_type('string'), 'string')
+        self.assertEqual(ge._convert_data_type('list_of_boolean'), 'string')
+        self.assertEqual(ge._convert_data_type('list_of_double'), 'string')
+        self.assertEqual(ge._convert_data_type('list_of_integer'), 'string')
+        self.assertEqual(ge._convert_data_type('list_of_long'), 'string')
         self.assertEqual(ge._convert_data_type('list_of_string'), 'string')
 
     def test_graphmlexporter_translate_edge_key(self):
@@ -260,7 +277,7 @@ class TestExporters(unittest.TestCase):
         self.assertTrue('2' in graph.nodes())
         self.assertTrue('3' in graph.nodes())
         self.assertTrue('4' in graph.nodes())
-
+        
         self.assertEqual(len(graph.edges()), 5)
         self.assertTrue(('1', '2') in graph.edges())
         self.assertTrue(('1', '3') in graph.edges())
@@ -281,6 +298,7 @@ class TestExporters(unittest.TestCase):
 
     def test_six_node_eight_edge_network_graphml_exporter(self):
         ge = GraphMLExporter()
+
         fakein = io.StringIO(self.get_sixnode_eightedge())
         fakeout = io.StringIO()
 

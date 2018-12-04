@@ -80,16 +80,18 @@ class GraphMLExporter(NDexExporter):
         """Converts Python data types (int, str, bool) to types
         acceptable by graphml
         """
-        if data_type == "int":
-            return "integer"
-        if data_type == "str" or data_type == "list" or \
-                data_type == "list_of_string":
-            return "string"
+        if (data_type == "int" or data_type == "boolean" or
+            data_type == "float" or data_type == "double" or
+            data_type == "string" or data_type == "long"):
+            return data_type
+
+        if data_type == "integer":
+            return "int"
+
         if data_type == "bool":
             return "boolean"
-        if data_type == "float":
-            return "double"
-        return data_type
+
+        return "string"
 
     def _translate_edge_key_names(self, val):
         if val is 'i':
