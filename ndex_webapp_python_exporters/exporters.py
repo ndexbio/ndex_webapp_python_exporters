@@ -82,7 +82,7 @@ class GraphMLExporter(NDexExporter):
         """
         if (data_type == "int" or data_type == "boolean" or
             data_type == "float" or data_type == "double" or
-            data_type == "string" or data_type == "long"):
+            data_type == "string" or data_type == "long"): # noqa
             return data_type
 
         if data_type == "integer":

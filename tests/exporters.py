@@ -12,7 +12,6 @@ from ndex_webapp_python_exporters.exporters import GraphMLExporter
 from ndex_webapp_python_exporters import exporters
 
 
-
 class TestExporters(unittest.TestCase):
     """Tests for `ndex_webapp_python_exporters` package."""
 
@@ -261,8 +260,10 @@ class TestExporters(unittest.TestCase):
         self.assertEqual(graph.edge['0']['1']['evidence'], 'blah')
         self.assertEqual(graph.edge['0']['1']['citation_type'], 'PubMed')
         self.assertEqual(graph.edge['0']['1']['citation_name'], 'Inact')
-        self.assertEqual(graph.edge['0']['1']['citation_reference'], '25961504')
-        self.assertEqual(graph.edge['0']['1']['PERTURBATION_METHOD'], 'Cre-Lox Knockout')
+        self.assertEqual(graph.edge['0']['1']['citation_reference'],
+                         '25961504')
+        self.assertEqual(graph.edge['0']['1']['PERTURBATION_METHOD'],
+                         'Cre-Lox Knockout')
 
     def test_four_node_network_graphml_exporter(self):
         ge = GraphMLExporter()
@@ -277,7 +278,7 @@ class TestExporters(unittest.TestCase):
         self.assertTrue('2' in graph.nodes())
         self.assertTrue('3' in graph.nodes())
         self.assertTrue('4' in graph.nodes())
-        
+
         self.assertEqual(len(graph.edges()), 5)
         self.assertTrue(('1', '2') in graph.edges())
         self.assertTrue(('1', '3') in graph.edges())
@@ -323,4 +324,5 @@ class TestExporters(unittest.TestCase):
         self.assertTrue(('64', '68') in graph.edges())
         self.assertTrue(('64', '66') in graph.edges())
 
-        self.assertEqual(graph.edge['72']['66']['name'], 'E (interacts with) B')
+        self.assertEqual(graph.edge['72']['66']['name'],
+                         'E (interacts with) B')
