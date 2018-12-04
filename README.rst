@@ -12,7 +12,7 @@ ndex-webapp-python-exporters
 .. image:: https://coveralls.io/repos/github/ndexbio/ndex_webapp_python_exporters/badge.svg?branch=master
         :target: https://coveralls.io/github/ndexbio/ndex_webapp_python_exporters?branch=master
 
-Command line exporters written in Python used by the NDex REST service.
+Command line exporters written in Python used by the NDEx REST service.
 
 **Supported Exporters**
 
@@ -21,7 +21,7 @@ Command line exporters written in Python used by the NDex REST service.
 Tools
 -----
 
-* **ndex_exporters.py** Takes file in `NDex CX`_ format and converts to format specified as a command line argument
+* **ndex_exporters.py** Takes file in `NDEx CX`_ format and converts to format specified as a command line argument
 
 
 Dependencies
@@ -55,14 +55,14 @@ Example usage
 -------------
 
 
-The example below assumes **foo.cx** is a file in `NDex CX`_ format
+The example below assumes **foo.cx** is a file in `NDEx CX`_ format
 
 ::
 
  cat foo.cx | ndex_exporters.py graphml > foo.graphml
 
 **NOTE:** For the above example, the network `Thyroid Cancer <http://www.ndexbio.org/#/network/54a9a35b-1e5f-11e8-b939-0ac135e8bacf>`_ can be downloaded
-as a file named **foo.cx** in `NDex CX`_ format.
+as a file named **foo.cx** in `NDEx CX`_ format.
 
 
 
@@ -75,5 +75,5 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-.. _`NDex CX`: http://www.home.ndexbio.org/data-model/
+.. _`NDEx CX`: http://www.home.ndexbio.org/data-model/
 .. _`Graphml`: http://graphml.graphdrawing.org/
