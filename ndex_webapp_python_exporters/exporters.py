@@ -82,7 +82,8 @@ class GraphMLExporter(NDexExporter):
         """
         if data_type == "int":
             return "integer"
-        if data_type == "str":
+        if data_type == "str" or data_type == "list" or \
+                data_type == "list_of_string":
             return "string"
         if data_type == "bool":
             return "boolean"
