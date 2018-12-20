@@ -13,8 +13,11 @@ LOG_FORMAT = "%(asctime)-15s %(levelname)s %(relativeCreated)dms " \
              "%(filename)s::%(funcName)s():%(lineno)d %(message)s"
 
 GRAPHML_MODE = 'graphml'
+NAGAHEAT_MODE = 'nagaheatcsv'
 FILE_FLAG = 'file'
 OUT_FLAG = 'out'
+GENE_LIST_FLAG = 'genelist'
+SNP_LEVEL_SUMMARY_FLAG = 'snp_level_summary'
 
 
 def _parse_arguments(desc, args):
@@ -23,11 +26,17 @@ def _parse_arguments(desc, args):
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=help_formatter)
     parser.add_argument('exporter', help='Specifies exporter to run',
-                        choices=[GRAPHML_MODE])
+                        choices=[GRAPHML_MODE, NAGAHEAT_MODE])
     parser.add_argument('--' + FILE_FLAG, '-f', default=None,
                         help='Read from this file instead of standard in')
     parser.add_argument('--' + OUT_FLAG, '-o', default=None,
                         help='Write to this file instead of standard out')
+    parser.add_argument('--' + GENE_LIST_FLAG, default=None,
+                        help='Path to gene list file for ' +
+                             NAGAHEAT_MODE + ' mode')
+    parser.add_argument('--' + SNP_LEVEL_SUMMARY_FLAG, default=None,
+                        help='Path to SNP level summary file for ' +
+                             NAGAHEAT_MODE + ' mode')
     parser.add_argument('--verbose', '-v', action='count',
                         help='Increases logging verbosity, max is 4',
                         default=1)

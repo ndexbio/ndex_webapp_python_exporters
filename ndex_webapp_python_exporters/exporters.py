@@ -431,3 +431,74 @@ class GraphMLExporter(NDexExporter):
         logger.info('Completed writing xml')
         outputstream.flush()
         return 0
+
+
+class NagaHeatCSV(NDexExporter):
+    """Runs NAGA on CX network passed in and
+    writes out CSV data in format:
+
+    Gene, Final Heat
+    gene1, 0.3
+    gene2, 5.0
+
+    """
+    NODE = 'node'
+    EDGE = 'edge'
+    SOURCE = 'source'
+    TARGET = 'target'
+    DATA = 'data'
+    KEY = 'key'
+    ID = 'id'
+    ATTR_NAME = 'attr.name'
+    ATTR_TYPE = 'attr.type'
+
+    def __init__(self, protein_coding,
+                 snp_level_summary,
+                 windowsize=1000,
+                 alpha=None):
+        """Constructor"""
+        super(NDexExporter, self).__init__()
+        self._cxnetwork = None
+        self._windowsize = windowsize
+        self._alpha = alpha
+        self._protein_coding = protein_coding
+        self._snp_level_summary = snp_level_summary
+
+    def _loadcx(self, inputstream):
+        logger.info('Loading CX data')
+        self._cxnetwork = ndex2.\
+            create_nice_cx_from_raw_cx(json.load(inputstream))
+
+    def _write_csv(self, outputstream):
+        """
+        Writes CSV to output stream
+        :param outputstream:
+        :return:
+        """
+        pass
+
+    def export(self, inputstream, outputstream):
+        """
+        Converts CX network to GraphML xml format in
+           a non efficient approach where entire inputstream
+           is loaded as a json document and then parsed
+        :param inputstream: InputStream to read CX data from
+        :param outputstream: OutputStream to write graphml xml data to
+        :raises JSONDecodeError: if there is an error parsing data
+        :raises AttributeError: Possibly raise if no data is offered by
+                                inputstream
+        :return: 0 upon success otherwise failure
+        """
+        """Converts CX network to GraphML xml format in
+           a non efficient approach where entire inputstream
+           is loaded as a json document and then parsed
+        """
+
+        logger.info('Reading inputstream')
+        self._loadcx(inputstream)
+        logger.info('Writing CSV')
+        self._write_csv(outputstream)
+        logger.info('Completed writing CSV')
+        outputstream.flush()
+        return 0
+
